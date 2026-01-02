@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Information</title>
+    <link rel="icon" type="image/png" href="/assets/logo.svg">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .popup-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .popup-container h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .popup-container p {
+            color: #666;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .popup-container a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            position: relative;
+            padding: 2px 4px;
+            transition: all 0.3s ease;
+        }
+
+        .popup-container a:hover {
+            color: #764ba2;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 4px;
+            transform: translateY(-1px);
+        }
+
+        .popup-container a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+        }
+
+        .popup-container a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #333;
+            transform: scale(1.1);
+        }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #667eea;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .popup-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .popup-container h2 {
+                font-size: 20px;
+            }
+            
+            .popup-container p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="popup-container">
+        <button class="close-btn" onclick="closePopup()" title="Close">&times;</button>
+        
+        <div class="icon">❤️</div>
+        
+        <h2>Make a Difference Today!</h2>
+        
+        <p>
+            If you want to donate an item please visit any of our 
+            <a href="Map.html">centers</a> or 
+            <a href="fundus.html">fund us</a>
+        </p>
+    </div>
+
+    <script>
+        function closePopup() {
+            // Add fade out animation
+            document.querySelector('.popup-container').style.animation = 'fadeOut 0.3s ease-in';
+            
+            setTimeout(() => {
+                // You can redirect to another page or close the window
+                window.history.back(); // Go back to previous page
+                // Or redirect to a specific page:
+                // window.location.href = 'index.html';
+            }, 300);
+        }
+
+
+        // Add fade out keyframe
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                to {
+                    opacity: 0;
+                    transform: scale(0.9);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Optional: Auto-close after 30 seconds
+        // setTimeout(closePopup, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Request Items | AidBridge</title>
+  <link rel="icon" type="image/png" href="/assets/logo.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/Request-Page.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/home.html">
+              <span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  class="bi bi-house"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"
+                  />
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"
+                  />
+                </svg>
+              </span>
+              <span>Home</span>
+            </a>
+  </nav>
+
+  <div class="header-section">
+    <h1>Request Items</h1>
+  </div>
+
+  <div class="container">
+    <div class="category-section">
+      <label for="categorySelect">Select Category:</label>
+      <select id="categorySelect">
+        <option value="">-- Choose Category --</option>
+        <option value="food">Food Supplies</option>
+        <option value="toiletries">Toiletries</option>
+        <option value="clothing">Clothing & Personal Items</option>
+        <option value="medical">Medical Kits & Health Equipments</option>
+      </select>
+    </div>
+    <div id="itemContainer">
+      <div class="no-items">
+        <h3>Loading...</h3>
+        <p>Connecting to server...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Sidebar -->
+  <div class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h2>Your Cart</h2>
+      <button class="close-cart" onclick="toggleCart()">×</button>
+    </div>
+    <div class="cart-content" id="cartItems">
+      <div class="empty-cart">Your cart is empty</div>
+    </div>
+    <div class="cart-footer">
+      <button class="checkout-btn" id="checkoutBtn">Proceed to Checkout</button>
+    </div>
+  </div>
+
+  <!-- View Cart Button -->
+  <button class="view-cart-btn" onclick="toggleCart()">
+    View Cart
+    <span class="cart-count" id="cartCount">0</span>
+  </button>
+
+  <!-- Checkout Modal -->
+  <div class="checkout-modal" id="checkoutModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Complete Your Request</h2>
+      </div>
+      
+      <form id="checkoutForm">
+        <div class="form-group">
+          <label for="fullName">Full Name *</label>
+          <input type="text" id="fullName" name="fullName" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone">Phone Number(+233 format) *</label>
+          <input type="tel" id="phone" name="phone" required>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Residential Address *</label>
+          <textarea id="address" name="address" placeholder="Please include your full address with identifiable landmarks" required></textarea>
+        </div>
+
+        <div class="order-summary">
+          <h3>Order Summary</h3>
+          <div id="orderSummaryItems"></div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeCheckoutModal()">Cancel</button>
+          <button type="submit" class="btn-confirm" id="confirmBtn">Confirm Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+    let app, db, auth;
+    let cart = [];
+
+    // Initialize Firebase with config from backend
+    async function initializeFirebase() {
+      try {
+        console.log('Fetching Firebase config from backend...');
+        const response = await fetch('/api/config/firebase');
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch config: ${response.status} ${response.statusText}`);
+        }
+        
+        const firebaseConfig = await response.json();
+        console.log('Firebase config loaded from backend successfully');
+        
+        app = initializeApp(firebaseConfig);
+        db = getDatabase(app);
+        auth = getAuth(app);
+        
+        // Initialize the app after Firebase is ready
+        initializeMainApp();
+        
+      } catch (error) {
+        console.error('Failed to initialize Firebase:', error);
+        showError('Failed to connect to the server. Please make sure your Node.js server is running and try refreshing the page.');
+      }
+    }
+
+    // Initialize the main application
+    function initializeMainApp() {
+      console.log('Initializing main application...');
+      
+      const itemContainer = document.getElementById('itemContainer');
+      const categorySelect = document.getElementById('categorySelect');
+      
+      // Load items based on selected category
+      categorySelect.addEventListener('change', () => {
+        const category = categorySelect.value;
+        console.log('Category selected:', category);
+        
+        if (!category) {
+          itemContainer.innerHTML = `
+            <div class="no-items">
+              <h3>Select a category</h3>
+              <p>Please choose a category from the dropdown above to view available items.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        loadItemsByCategory(category);
+      });
+
+      // Test Firebase connection
+      testFirebaseConnection();
+
+      // Initialize page - no items shown initially
+      itemContainer.innerHTML = `
+        <div class="no-items">
+          <h3>Select a category</h3>
+          <p>Please choose a category from the dropdown above to view available items.</p>
+        </div>
+      `;
+
+      // Setup checkout button event listener
+      const checkoutBtn = document.getElementById('checkoutBtn');
+      if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          toggleCart(); // Close cart sidebar
+          openCheckoutModal(); // Open checkout modal
+        });
+      }
+
+      // Handle checkout form submission
+      const checkoutForm = document.getElementById('checkoutForm');
+      if (checkoutForm) {
+        checkoutForm.addEventListener('submit', handleCheckoutSubmission);
+      }
+
+      // Close modal when clicking outside
+      const checkoutModal = document.getElementById('checkoutModal');
+      if (checkoutModal) {
+        checkoutModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            closeCheckoutModal();
+          }
+        });
+      }
+
+      console.log('Main application initialized successfully');
+    }
+
+    function showError(message) {
+      const itemContainer = document.getElementById('itemContainer');
+      if (itemContainer) {
+        itemContainer.innerHTML = `
+          <div class="no-items">
+            <h3>Connection Error</h3>
+            <p>${message}</p>
+            <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry</button>
+          </div>
+        `;
+      }
+    }
+
+    // Test Firebase connection
+    async function testFirebaseConnection() {
+      try {
+        console.log('Testing Firebase connection...');
+        const testRef = ref(db, '.info/connected');
+        onValue(testRef, (snapshot) => {
+          const connected = snapshot.val();
+          console.log('Firebase connected:', connected);
+          if (!connected) {
+            console.error('Firebase is not connected');
+          }
+        });
+        
+        // Test reading items structure
+        const itemsRef = ref(db, 'items');
+        const snapshot = await get(itemsRef);
+        const data = snapshot.val();
+        console.log('Items structure in Firebase:', data);
+        
+        if (!data) {
+          console.warn('No items found in Firebase. Expected structure: items/{category}/{itemId}');
+        }
+      } catch (error) {
+        console.error('Firebase connection test failed:', error);
+      }
+    }
+
+    function loadItemsByCategory(category) {
+      const itemContainer = document.getElementById('itemContainer');
+      console.log('Loading items for category:', category);
+      
+      // Show loading state
+      itemContainer.innerHTML = `
+        <div class="no-items">
+          <div class="loading-spinner"></div>
+          <h3>Loading items...</h3>
+          <p>Please wait while we fetch available items.</p>
+        </div>
+      `;
+
+      const itemsRef = ref(db, `items/${category}`);
+      
+      onValue(itemsRef, (snapshot) => {
+        const data = snapshot.val();
+        console.log('Firebase data for category:', category, data);
+        itemContainer.innerHTML = '';
+
+        if (!data) {
+          itemContainer.innerHTML = `
+            <div class="no-items">
+              <h3>No items available</h3>
+              <p>There are currently no items in this category.</p>
+              <small>Category: ${category}</small>
+            </div>
+          `;
+          return;
+        }
+
+        let hasItems = false;
+        
+        // Check if data is an array or object
+        const itemsArray = Array.isArray(data) ? data : Object.entries(data);
+        console.log('Processing items array:', itemsArray);
+        
+        itemsArray.forEach(([itemId, item], index) => {
+          // Handle both array and object structures
+          const actualItem = Array.isArray(data) ? item : item;
+          const actualItemId = Array.isArray(data) ? index : itemId;
+          
+          console.log('Processing item:', actualItemId, actualItem);
+          
+          if (actualItem && actualItem.quantity > 0) {
+            hasItems = true;
+            const card = document.createElement('div');
+            card.className = 'item-card';
+
+            card.innerHTML = `
+              <img src="${actualItem.imageUrl || '/assets/placeholder.jpg'}" alt="${actualItem.itemName}" onerror="this.src='/assets/placeholder.jpg'" />
+              <div class="item-name">${actualItem.itemName}</div>
+              <div class="item-description">${actualItem.description || ''}</div>
+              <div class="item-stock">Available: ${actualItem.quantity}</div>
+              <div class="quantity-control">
+                <label>Quantity:</label>
+                <input type="number" id="qty-${actualItemId}" min="1" max="${actualItem.quantity}" value="1" />
+              </div>
+              <button type="button" class="add-to-cart-btn" id="add-${actualItemId}">Add to Cart</button>
+            `;
+
+            // Add event listener for add to cart button
+            const addButton = card.querySelector(`#add-${actualItemId}`);
+            addButton.addEventListener('click', () => {
+              const qtyInput = card.querySelector(`#qty-${actualItemId}`);
+              const qty = parseInt(qtyInput.value);
+
+              if (qty > 0 && qty <= actualItem.quantity) {
+                const existing = cart.find(i => i.itemId === actualItemId);
+                if (existing) {
+                  existing.quantity += qty;
+                } else {
+                  cart.push({ 
+                    itemId: actualItemId, 
+                    itemName: actualItem.itemName, 
+                    imageUrl: actualItem.imageUrl || '/assets/placeholder.jpg', 
+                    quantity: qty, 
+                    category: category 
+                  });
+                }
+                updateCartDisplay();
+                Swal.fire({ 
+                  icon: 'success', 
+                  title: 'Added to cart!', 
+                  timer: 1000, 
+                  showConfirmButton: false,
+                  toast: true,
+                  position: 'top-end'
+                });
+              } else {
+                Swal.fire({ 
+                  icon: 'warning', 
+                  title: 'Invalid quantity',
+                  text: `Please enter a quantity between 1 and ${actualItem.quantity}`
+                });
+              }
+            });
+
+            itemContainer.appendChild(card);
+          }
+        });
+
+        if (!hasItems) {
+          itemContainer.innerHTML = `
+            <div class="no-items">
+              <h3>No items in stock</h3>
+              <p>All items in this category are currently out of stock.</p>
+              <small>Category: ${category}</small>
+            </div>
+          `;
+        }
+        
+        console.log('Items loaded successfully. Has items:', hasItems);
+      }, (error) => {
+        console.error('Firebase error:', error);
+        itemContainer.innerHTML = `
+          <div class="no-items">
+            <h3>Error loading items</h3>
+            <p>There was an error connecting to the database. Please try refreshing the page.</p>
+            <small>Error: ${error.message}</small>
+          </div>
+        `;
+      });
+    }
+
+    function updateCartDisplay() {
+      const cartItemsContainer = document.getElementById('cartItems');
+      const cartCount = document.getElementById('cartCount');
+      
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+        cartCount.textContent = '0';
+        return;
+      }
+
+      cartItemsContainer.innerHTML = '';
+      cart.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <img src="${item.imageUrl}" alt="${item.itemName}" />
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.itemName}</div>
+            <div class="cart-item-qty">Qty: ${item.quantity}</div>
+          </div>
+          <button class="remove-item" onclick="removeFromCart(${index})">×</button>
+        `;
+        cartItemsContainer.appendChild(div);
+      });
+
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      cartCount.textContent = totalItems.toString();
+    }
+
+    function openCheckoutModal() {
+      if (cart.length === 0) {
+        Swal.fire({ icon: 'info', title: 'Cart is empty' });
+        return;
+      }
+
+      // Populate order summary
+      const orderSummaryItems = document.getElementById('orderSummaryItems');
+      orderSummaryItems.innerHTML = '';
+      
+      cart.forEach(item => {
+        const summaryItem = document.createElement('div');
+        summaryItem.className = 'summary-item';
+        summaryItem.innerHTML = `
+          <div>
+            <div class="summary-item-name">${item.itemName}</div>
+            <div class="summary-item-qty">Quantity: ${item.quantity}</div>
+          </div>
+        `;
+        orderSummaryItems.appendChild(summaryItem);
+      });
+
+      // Pre-fill email if user is logged in
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          document.getElementById('email').value = user.email;
+        }
+      });
+
+      const modal = document.getElementById('checkoutModal');
+      modal.classList.add('active');
+      const fullNameInput = document.getElementById('fullName');
+      if (fullNameInput) {
+        fullNameInput.focus();
+      }
+    }
+
+    // Handle checkout form submission
+    async function handleCheckoutSubmission(e) {
+      e.preventDefault();
+
+      const confirmBtn = document.getElementById('confirmBtn');
+      const originalText = confirmBtn.textContent;
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Processing...';
+
+      try {
+        // Get form data
+        const formData = new FormData(e.target);
+        const requestData = {
+          fullName: formData.get('fullName'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          address: formData.get('address')
+        };
+
+        // Validate required fields
+        if (!requestData.fullName || !requestData.email || !requestData.phone || !requestData.address) {
+          Swal.fire({ icon: 'error', title: 'Please fill in all required fields' });
+          return;
+        }
+
+        // Check if user is authenticated
+        const user = auth.currentUser;
+        if (!user) {
+          Swal.fire({ icon: 'error', title: 'Please log in first' });
+          return;
+        }
+
+        // Check stock availability
+        for (const item of cart) {
+          const itemRef = ref(db, `items/${item.category}/${item.itemId}`);
+          const snapshot = await get(itemRef);
+          const data = snapshot.val();
+
+          if (!data || data.quantity < item.quantity) {
+            Swal.fire({ icon: 'error', title: `Not enough ${item.itemName} in stock` });
+            return;
+          }
+        }
+
+        // Update stock quantities
+        for (const item of cart) {
+          const itemRef = ref(db, `items/${item.category}/${item.itemId}`);
+          const snapshot = await get(itemRef);
+          const data = snapshot.val();
+          await update(itemRef, { quantity: data.quantity - item.quantity });
+        }
+
+        // Prepare request data for Firebase
+        const requestId = Date.now().toString();
+        const requestRef = ref(db, `requests/${requestId}`);
+
+        const fullRequestData = {
+          requestId: requestId,
+          personalInfo: requestData,
+          items: cart,
+          status: 'pending',
+          timestamp: Date.now(),
+          dateCreated: new Date().toISOString()
+        };
+
+        // Save to Firebase
+        await set(requestRef, fullRequestData);
+
+        // Reset everything first
+        cart = [];
+        updateCartDisplay();
+        closeCheckoutModal();
+
+        // Show success message after everything is reset
+        Swal.fire({
+          icon: 'success',
+          title: 'Request Submitted Successfully!',
+          html: `Your request has been received and will be processed soon.`,
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#667eea'
+        });
+
+      } catch (error) {
+        console.error('Error submitting request:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to submit request. Please try again.'
+        });
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = originalText;
+      }
+    }
+
+    // Global functions that need to be accessible from HTML
+    window.removeFromCart = function(index) {
+      cart.splice(index, 1);
+      updateCartDisplay();
+    }
+
+    window.toggleCart = function() {
+      const sidebar = document.getElementById('cartSidebar');
+      sidebar.classList.toggle('open');
+    }
+
+    window.closeCheckoutModal = function() {
+      const modal = document.getElementById('checkoutModal');
+      modal.classList.remove('active');
+      
+      // Reset form
+      const checkoutForm = document.getElementById('checkoutForm');
+      if (checkoutForm) {
+        checkoutForm.reset();
+      }
+    }
+
+    // Initialize Firebase and start the app
+    console.log('Starting application initialization...');
+    initializeFirebase();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Item Donation | AidBridge</title>
+  <link rel="icon" type="image/png" href="/assets/logo.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Mulish&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/Admin-Donation.css" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css" rel="stylesheet" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="#" class="navbar-logo">AidBridge</a>
+      <div class="navbar-menu">
+        <a href="/Admin-Dashboard.html" class="navbar-item">Back</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="form-wrapper">
+    <div class="form-side">
+      <form class="my-form" id="itemForm">
+        <div class="form-welcome-row">
+          <h1 style="text-align:center;">Add Item to Inventory</h1>
+        </div>
+
+        <div class="text-field">
+          <label for="itemName">Item Name:
+            <input type="text" id="itemName" name="itemName" placeholder="e.g. Rice" required />
+          </label>
+        </div>
+
+        <div class="text-field">
+          <label for="imageUrl">Image URL:
+            <input type="url" id="imageUrl" name="imageUrl" placeholder="https://example.com/image.jpg" required />
+          </label>
+        </div>
+
+        <div class="text-field">
+          <label for="quantity">Quantity:
+            <input type="number" id="quantity" name="quantity" min="0" required />
+          </label>
+        </div>
+
+        <div class="text-field">
+          <label for="category">Category:
+            <select id="category" name="category" required>
+              <option value="">--Select Category--</option>
+              <option value="food">Food Supplies</option>
+              <option value="toiletries">Toiletries</option>
+              <option value="clothing">Clothing & Personal Items</option>
+              <option value="medical">Medical Kits & Health Equipments</option>
+            </select>
+          </label>
+        </div>
+
+        <button type="submit">Add Item</button>
+        <div id="formMessage" class="message"></div>
+      </form>
+    </div>
+
+    <div class="info-side">
+      <img src="/assets/7706810.jpg" alt="Donation" class="mockup" />
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDHqlTMSxyGZlZ96HczhiSCiXx4zdPX_do",
+  authDomain: "aidbridge-d2d6f.firebaseapp.com",
+  projectId: "aidbridge-d2d6f",
+  storageBucket: "aidbridge-d2d6f.firebasestorage.app",
+  messagingSenderId: "713082002976",
+  appId: "1:713082002976:web:0334f8454e398e5e86a645"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const form = document.getElementById('itemForm');
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      const itemName = document.getElementById('itemName').value.trim();
+      const imageUrl = document.getElementById('imageUrl').value.trim();
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const category = document.getElementById('category').value;
+
+      if (quantity < 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Quantity',
+          text: 'Quantity cannot be negative.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      if (!category) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Category Required',
+          text: 'Please select a category.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        return;
+      }
+
+      const itemId = Date.now().toString();
+      const itemRef = ref(database, `items/${category}/${itemId}`);
+
+      set(itemRef, {
+        itemName: itemName,
+        imageUrl: imageUrl,
+        quantity: quantity,
+        category: category
+      }).then(() => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Item added successfully!',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        form.reset();
+      }).catch(error => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error adding item',
+          text: error.message,
+          timer: 2000,
+          showConfirmButton: false
+        });
+      });
+    });
+  </script>
+</body>
+</html>

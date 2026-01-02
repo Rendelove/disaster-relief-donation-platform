@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard | AidBridge</title>
+  <link rel="icon" type="image/png" href="/assets/logo.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/Admin-Dashboard.css" />
+  
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  
+  <style>
+    .sms-status, .email-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 500;
+      z-index: 10000;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .sms-status.show, .email-status.show {
+      transform: translateX(0);
+    }
+    
+    .sms-status.success, .email-status.success {
+      background: linear-gradient(135deg, #28a745, #20c997);
+    }
+    
+    .sms-status.error, .email-status.error {
+      background: linear-gradient(135deg, #dc3545, #e83e8c);
+    }
+    
+    .notification-options {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .notification-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #f8f9fa;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .notification-toggle:hover {
+      background: #e9ecef;
+    }
+    
+    .notification-toggle input[type="checkbox"] {
+      margin: 0;
+    }
+    
+    .notification-toggle.active {
+      background: #e3f2fd;
+      border-color: #2196f3;
+    }
+
+    /* New styles for damage images section */
+    .damage-images-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+    }
+
+    .damage-images-header {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .damage-images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .damage-image-card {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      background: white;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .damage-image-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+
+    .damage-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .damage-image:hover {
+      opacity: 0.9;
+    }
+
+    .damage-image-info {
+      padding: 10px;
+      font-size: 0.85em;
+      color: #6c757d;
+    }
+
+    .damage-image-name {
+      font-weight: 500;
+      color: #495057;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .damage-image-size {
+      font-size: 0.8em;
+    }
+
+    .no-images-message {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+      padding: 20px;
+    }
+
+    /* Modal styles for image viewing */
+    .image-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+    }
+
+    .image-modal-content {
+      position: relative;
+      margin: auto;
+      padding: 20px;
+      width: 90%;
+      max-width: 800px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-image {
+      max-width: 100%;
+      max-height: 80%;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      color: #fff;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-close:hover {
+      opacity: 0.7;
+    }
+
+    .modal-info {
+      color: white;
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.9em;
+    }
+
+    /* Assessment section enhancements */
+    .assessment-info {
+      margin-top: 10px;
+    }
+
+    .assessment-details {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .assessment-status.approve {
+      background: #d4edda;
+      color: #155724;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    .assessment-status.reject {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    .assessment-status.manual-review {
+      background: #fff3cd;
+      color: #856404;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    .assessment-status.not-found {
+      background: #e2e3e5;
+      color: #6c757d;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+    }
+
+    .assessment-score {
+      background: #e3f2fd;
+      color: #1565c0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-left">
+      <a href="/home.html">
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2 13.5V7h1v6.5a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5V7h1v6.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5zm11-11V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/>
+            <path fill-rule="evenodd" d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"/>
+          </svg>
+        </span>
+        <span>Home</span>
+      </a>
+      
+      <a href="Admin-Donation.html">
+        <span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+          </svg>
+        </span>
+        <span>Donate</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="header-section">
+    <h1>Admin Dashboard</h1>
+    <p>Manage and track all user requests with email & SMS notifications</p>
+  </div>
+
+  <div class="dashboard-container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3 id="totalRequests">0</h3>
+        <p>Total Requests</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="pendingRequests">0</h3>
+        <p>Pending Requests</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="approvedRequests">0</h3>
+        <p>Approved Requests</p>
+      </div>
+      <div class="stat-card">
+        <h3 id="completedRequests">0</h3>
+        <p>Completed Requests</p>
+      </div>
+    </div>
+
+    <div class="controls-section">
+      <div class="controls-row">
+        <div class="filter-group">
+          <label for="statusFilter">Filter by Status</label>
+          <select id="statusFilter">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="assessmentFilter">Filter by Assessment</label>
+          <select id="assessmentFilter">
+            <option value="">All Assessments</option>
+            <option value="Approve">Approved Assessment</option>
+            <option value="Reject">Rejected Assessment</option>
+            <option value="Manual Review">Manual Review</option>
+            <option value="Not Found">No Assessment</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="dateFilter">Filter by Date</label>
+          <input type="date" id="dateFilter">
+        </div>
+        <div class="filter-group">
+          <label for="searchFilter">Search</label>
+          <input type="text" id="searchFilter" placeholder="Search by name, email...">
+        </div>
+        <button class="refresh-btn" onclick="loadRequests()">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="requests-section">
+      <div class="requests-header">
+        <h2>All Requests</h2>
+        <div style="font-size: 0.9em; color: #666; margin-top: 5px;">
+          📧 📱 Email & SMS notifications will be sent automatically when you approve/reject requests
+        </div>
+      </div>
+      <div class="requests-list" id="requestsList">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <h3>Loading requests and assessments...</h3>
+          <p>Please wait while we fetch the latest data from the database.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Modal -->
+  <div id="imageModal" class="image-modal">
+    <div class="image-modal-content">
+      <span class="modal-close" onclick="closeImageModal()">&times;</span>
+      <img id="modalImage" class="modal-image" src="" alt="">
+      <div id="modalInfo" class="modal-info"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHqlTMSxyGZlZ96HczhiSCiXx4zdPX_do",
+      authDomain: "aidbridge-d2d6f.firebaseapp.com",
+      projectId: "aidbridge-d2d6f",
+      storageBucket: "aidbridge-d2d6f.firebasestorage.app",
+      messagingSenderId: "713082002976",
+      appId: "1:713082002976:web:0334f8454e398e5e86a645"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const firestore = getFirestore(app);
+    const auth = getAuth(app);
+
+    // 🔥 EMAILJS CONFIGURATION - REPLACE THESE WITH YOUR KEYS!
+    const EMAILJS_CONFIG = {
+      publicKey: "R1uLNDxiT_IIf-UGh", // Replace with your EmailJS public key
+      serviceId: "service_9dnwl1m",    // Replace with your EmailJS service ID
+      templateIds: {
+        approved: "template_wa5n1b9",     // Replace with your approval template ID
+        rejected: "template_78d2g2o",     // Replace with your rejection template ID
+        completed: "template_completed"    // Replace with your completion template ID
+      }
+    };
+
+    // Initialize EmailJS
+    (function() {
+      if (EMAILJS_CONFIG.publicKey !== "YOUR_EMAILJS_PUBLIC_KEY") {
+        emailjs.init(EMAILJS_CONFIG.publicKey);
+        console.log('✅ EmailJS initialized successfully');
+      } else {
+        console.warn('⚠️ Please configure EmailJS keys in the script');
+      }
+    })();
+
+    let allRequests = [];
+    let filteredRequests = [];
+    let assessmentsCache = new Map();
+
+    // DOM Elements
+    const requestsList = document.getElementById('requestsList');
+    const statusFilter = document.getElementById('statusFilter');
+    const assessmentFilter = document.getElementById('assessmentFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    const searchFilter = document.getElementById('searchFilter');
+
+    // Statistics elements
+    const totalRequestsEl = document.getElementById('totalRequests');
+    const pendingRequestsEl = document.getElementById('pendingRequests');
+    const approvedRequestsEl = document.getElementById('approvedRequests');
+    const completedRequestsEl = document.getElementById('completedRequests');
+
+    // 📧 EMAIL NOTIFICATION FUNCTIONS
+    function showEmailStatus(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `email-status ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add('show'), 100);
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 4000);
+    }
+
+    // 📱 SMS NOTIFICATION FUNCTIONS
+    function showSMSStatus(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `sms-status ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add('show'), 100);
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 4000);
+    }
+
+    async function sendSMSNotification(status, userPhone, userName, requestId, itemCount) {
+      try {
+        console.log(`Sending ${status} SMS to ${userPhone}`);
+        showSMSStatus('📤 Sending SMS...', 'success');
+
+        const messages = {
+          approved: `Hello ${userName}! Great news! Your AidBridge request #${requestId} for ${itemCount} item(s) has been APPROVED. You will be contacted soon about pickup/delivery. Thank you for using AidBridge!`,
+          rejected: `Hello ${userName}, We regret to inform you that your AidBridge request #${requestId} has been declined. Please review your eligibility and feel free to reapply. Thank you for your understanding.`,
+          completed: `Hello ${userName}! Your AidBridge request #${requestId} has been marked as COMPLETED. We hope the items help you during this time. Thank you for using AidBridge!`
+        };
+
+        const response = await fetch('/api/sms/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            to: userPhone,
+            message: messages[status]
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          console.log('SMS sent successfully:', data);
+          showSMSStatus(`✅ SMS sent to ${userName}`, 'success');
+          return true;
+        } else {
+          throw new Error(data.error);
+        }
+
+      } catch (error) {
+        console.error('SMS sending failed:', error);
+        showSMSStatus(`❌ Failed to send SMS: ${error.message}`, 'error');
+        return false;
+      }
+    }
+
+    async function sendNotificationEmail(status, userEmail, userName, requestId, itemCount) {
+      // Check if EmailJS is configured
+      if (EMAILJS_CONFIG.publicKey === "YOUR_EMAILJS_PUBLIC_KEY") {
+        console.warn('EmailJS not configured - email not sent');
+        showEmailStatus('⚠️ EmailJS not configured. Please add your API keys.', 'error');
+        return false;
+      }
+
+      try {
+        console.log(`Sending ${status} email to ${userEmail}`);
+        showEmailStatus('📤 Sending email...', 'success');
+
+        const templateId = EMAILJS_CONFIG.templateIds[status];
+        
+        const templateParams = {
+          to_name: userName,
+          to_email: userEmail,
+          request_id: requestId,
+          item_count: itemCount,
+          status: status,
+          date: new Date().toLocaleDateString(),
+        };
+
+        const response = await emailjs.send(
+          EMAILJS_CONFIG.serviceId,
+          templateId,
+          templateParams
+        );
+
+        console.log('Email sent successfully:', response);
+        showEmailStatus(`✅ Email sent to ${userName}`, 'success');
+        return true;
+
+      } catch (error) {
+        console.error('Email sending failed:', error);
+        showEmailStatus(`❌ Failed to send email: ${error.text || error.message}`, 'error');
+        return false;
+      }
+    }
+
+    // Load requests on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRequests();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      statusFilter.addEventListener('change', applyFilters);
+      assessmentFilter.addEventListener('change', applyFilters);
+      dateFilter.addEventListener('change', applyFilters);
+      searchFilter.addEventListener('input', applyFilters);
+    }
+
+    async function loadAssessmentsData() {
+      try {
+        console.log('Loading assessment data...');
+        const assessmentsCollection = collection(firestore, 'assessments');
+        const assessmentSnapshot = await getDocs(assessmentsCollection);
+        
+        assessmentsCache.clear();
+        assessmentSnapshot.forEach((doc) => {
+          const data = doc.data();
+          assessmentsCache.set(data.userId, data);
+        });
+        
+        console.log(`Loaded ${assessmentsCache.size} assessments`);
+      } catch (error) {
+        console.error('Error loading assessments:', error);
+      }
+    }
+
+    function getAssessmentStatus(userId, email) {
+      if (userId) {
+        const assessment = assessmentsCache.get(userId);
+        if (assessment) {
+          return {
+            status: assessment.status || 'Manual Review',
+            score: assessment.score || 0,
+            reasons: assessment.reasons || [],
+            flags: assessment.flags || [],
+            homeImages: assessment.homeImages || []
+          };
+        }
+      }
+      
+      if (email) {
+        for (const [key, assessment] of assessmentsCache) {
+          if (assessment.email === email) {
+            return {
+              status: assessment.status || 'Manual Review',
+              score: assessment.score || 0,
+              reasons: assessment.reasons || [],
+              flags: assessment.flags || [],
+              homeImages: assessment.homeImages || []
+            };
+          }
+        }
+      }
+      
+      return { 
+        status: 'Not Found', 
+        score: null, 
+        reasons: [], 
+        flags: [], 
+        homeImages: [] 
+      };
+    }
+
+    function loadRequests() {
+      console.log('Loading requests from Firebase...');
+      
+      const requestsRef = ref(db, 'requests');
+      
+      onValue(requestsRef, async (snapshot) => {
+        const data = snapshot.val();
+        console.log('Requests data:', data);
+        
+        if (!data) {
+          allRequests = [];
+          displayEmptyState();
+          updateStatistics();
+          return;
+        }
+
+        await loadAssessmentsData();
+
+        allRequests = Object.values(data)
+          .sort((a, b) => b.timestamp - a.timestamp)
+          .map(request => {
+            const assessmentData = getAssessmentStatus(request.userId, request.personalInfo?.email);
+            return {
+              ...request,
+              assessmentStatus: assessmentData.status,
+              assessmentScore: assessmentData.score,
+              assessmentReasons: assessmentData.reasons,
+              assessmentFlags: assessmentData.flags,
+              homeImages: assessmentData.homeImages
+            };
+          });
+        
+        console.log('Processed requests with assessments:', allRequests);
+        
+        applyFilters();
+        updateStatistics();
+      }, (error) => {
+        console.error('Error loading requests:', error);
+        requestsList.innerHTML = `
+          <div class="empty-state">
+            <h3>Error Loading Requests</h3>
+            <p>There was an error connecting to the database: ${error.message}</p>
+            <button class="refresh-btn" onclick="loadRequests()">Try Again</button>
+          </div>
+        `;
+      });
+    }
+
+    function applyFilters() {
+      filteredRequests = [...allRequests];
+
+      const statusValue = statusFilter.value;
+      if (statusValue) {
+        filteredRequests = filteredRequests.filter(req => req.status === statusValue);
+      }
+
+      const assessmentValue = assessmentFilter.value;
+      if (assessmentValue) {
+        filteredRequests = filteredRequests.filter(req => req.assessmentStatus === assessmentValue);
+      }
+
+      const dateValue = dateFilter.value;
+      if (dateValue) {
+        const filterDate = new Date(dateValue);
+        filteredRequests = filteredRequests.filter(req => {
+          const reqDate = new Date(req.timestamp);
+          return reqDate.toDateString() === filterDate.toDateString();
+        });
+      }
+
+      const searchValue = searchFilter.value.toLowerCase();
+      if (searchValue) {
+        filteredRequests = filteredRequests.filter(req => 
+          req.personalInfo.fullName.toLowerCase().includes(searchValue) ||
+          req.personalInfo.email.toLowerCase().includes(searchValue) ||
+          req.personalInfo.phone.includes(searchValue)
+        );
+      }
+
+      displayRequests();
+    }
+
+    function getAssessmentStatusClass(status) {
+      switch(status) {
+        case 'Approve': return 'approve';
+        case 'Reject': return 'reject';
+        case 'Manual Review': return 'manual-review';
+        default: return 'not-found';
+      }
+    }
+
+    function generateDamageImagesSection(homeImages) {
+      if (!homeImages || homeImages.length === 0) {
+        return `
+          <div class="damage-images-section">
+            <div class="damage-images-header">
+              📷 Property Damage Photos
+            </div>
+            <div class="no-images-message">
+              No damage photos available for this request
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="damage-images-section">
+          <div class="damage-images-header">
+            📷 Property Damage Photos (${homeImages.length})
+          </div>
+          <div class="damage-images-grid">
+            ${homeImages.map((image, index) => `
+              <div class="damage-image-card">
+                <img 
+                  src="${image.base64}" 
+                  alt="Property damage photo ${index + 1}" 
+                  class="damage-image"
+                  onclick="openImageModal('${image.base64}', '${image.name}', '${(image.size / 1024).toFixed(1)} KB')"
+                  loading="lazy"
+                >
+                <div class="damage-image-info">
+                  <div class="damage-image-name">${image.name || `Image ${index + 1}`}</div>
+                  <div class="damage-image-size">${image.size ? (image.size / 1024).toFixed(1) + ' KB' : ''}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function displayRequests() {
+      if (filteredRequests.length === 0) {
+        displayEmptyState();
+        return;
+      }
+
+      requestsList.innerHTML = filteredRequests.map(request => `
+        <div class="request-card">
+          <div class="request-header">
+            <div class="request-info">
+              <h3>${request.personalInfo.fullName}</h3>
+              <div class="request-meta">
+                <span>Request ID: ${request.requestId}</span>
+                <span>Date: ${new Date(request.timestamp).toLocaleDateString()}</span>
+                <span>Time: ${new Date(request.timestamp).toLocaleTimeString()}</span>
+              </div>
+            </div>
+            <div class="status-badge status-${request.status}">
+              ${request.status}
+            </div>
+          </div>
+
+          <div class="contact-info">
+            <div class="contact-item">
+              <div class="contact-label">Email</div>
+              <div class="contact-value">${request.personalInfo.email}</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Phone</div>
+              <div class="contact-value">${request.personalInfo.phone}</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-label">Address</div>
+              <div class="contact-value">${request.personalInfo.address}</div>
+            </div>
+            
+            <div class="assessment-info">
+              <div class="contact-label">Assessment Status</div>
+              <div class="assessment-details">
+                <span class="assessment-status ${getAssessmentStatusClass(request.assessmentStatus)}">
+                  ${request.assessmentStatus}
+                </span>
+                ${request.assessmentScore !== null ? `<span class="assessment-score">Score: ${request.assessmentScore}/100</span>` : ''}
+              </div>
+              ${request.assessmentReasons && request.assessmentReasons.length > 0 ? `
+                <div class="assessment-reasons">
+                  <strong>Reasons:</strong> ${request.assessmentReasons.join(', ')}
+                </div>
+              ` : ''}
+              ${request.assessmentFlags && request.assessmentFlags.length > 0 ? `
+                <div class="assessment-flags">
+                  <strong>Flags:</strong> ${request.assessmentFlags.join(', ')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          ${generateDamageImagesSection(request.homeImages)}
+
+          <div class="items-section">
+            <div class="items-header">Requested Items (${request.items.length})</div>
+            <div class="items-grid">
+              ${request.items.map(item => `
+                <div class="item-card">
+                  <img src="${item.imageUrl}" alt="${item.itemName}" class="item-image" onerror="this.src='/assets/placeholder.jpg'">
+                  <div class="item-details">
+                    <div class="item-name">${item.itemName}</div>
+                    <div class="item-quantity">Qty: ${item.quantity}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="actions-section">
+            ${request.status === 'pending' ? `
+              <div class="notification-options">
+                <label class="notification-toggle">
+                  <input type="checkbox" id="emailToggle_${request.requestId}" checked>
+                  <span>📧 Send Email</span>
+                </label>
+                <label class="notification-toggle">
+                  <input type="checkbox" id="smsToggle_${request.requestId}" checked>
+                  <span>📱 Send SMS</span>
+                </label>
+              </div>
+              <button class="action-btn btn-approve" onclick="updateRequestStatus('${request.requestId}', 'approved', '${request.personalInfo.fullName}', '${request.personalInfo.email}', '${request.personalInfo.phone}', ${request.items.length})">
+                📧📱 Approve & Send Notifications
+              </button>
+              <button class="action-btn btn-reject" onclick="updateRequestStatus('${request.requestId}', 'rejected', '${request.personalInfo.fullName}', '${request.personalInfo.email}', '${request.personalInfo.phone}', ${request.items.length})">
+                📧📱 Reject & Send Notifications
+              </button>
+            ` : ''}
+            ${request.status === 'approved' ? `
+              <div class="notification-options">
+                <label class="notification-toggle">
+                  <input type="checkbox" id="emailToggle_${request.requestId}" checked>
+                  <span>📧 Send Email</span>
+                </label>
+                <label class="notification-toggle">
+                  <input type="checkbox" id="smsToggle_${request.requestId}" checked>
+                  <span>📱 Send SMS</span>
+                </label>
+              </div>
+              <button class="action-btn btn-complete" onclick="updateRequestStatus('${request.requestId}', 'completed', '${request.personalInfo.fullName}', '${request.personalInfo.email}', '${request.personalInfo.phone}', ${request.items.length})">
+                📧📱 Mark Complete & Send Notifications
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function displayEmptyState() {
+      const hasFilters = statusFilter.value || assessmentFilter.value || dateFilter.value || searchFilter.value;
+      
+      requestsList.innerHTML = `
+        <div class="empty-state">
+          <h3>${hasFilters ? 'No requests match your filters' : 'No requests found'}</h3>
+          <p>${hasFilters ? 'Try adjusting your filters to see more results.' : 'There are currently no requests in the database.'}</p>
+        </div>
+      `;
+    }
+
+    function updateStatistics() {
+      const total = allRequests.length;
+      const pending = allRequests.filter(req => req.status === 'pending').length;
+      const approved = allRequests.filter(req => req.status === 'approved').length;
+      const completed = allRequests.filter(req => req.status === 'completed').length;
+
+      animateCounter(totalRequestsEl, total);
+      animateCounter(pendingRequestsEl, pending);
+      animateCounter(approvedRequestsEl, approved);
+      animateCounter(completedRequestsEl, completed);
+    }
+
+    function animateCounter(element, target) {
+      const current = parseInt(element.textContent) || 0;
+      const increment = Math.ceil((target - current) / 10);
+      
+      if (current < target) {
+        element.textContent = Math.min(current + increment, target);
+        setTimeout(() => animateCounter(element, target), 50);
+      } else if (current > target) {
+        element.textContent = Math.max(current - Math.abs(increment), target);
+        setTimeout(() => animateCounter(element, target), 50);
+      }
+    }
+
+    // Image modal functions
+    window.openImageModal = function(imageSrc, imageName, imageSize) {
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      const modalInfo = document.getElementById('modalInfo');
+      
+      modalImage.src = imageSrc;
+      modalImage.alt = imageName;
+      modalInfo.textContent = `${imageName} - ${imageSize}`;
+      
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closeImageModal = function() {
+      const modal = document.getElementById('imageModal');
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    };
+
+    // Close modal when clicking outside the image
+    document.getElementById('imageModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeImageModal();
+      }
+    });
+
+    // Close modal with escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeImageModal();
+      }
+    });
+
+    // 🔥 ENHANCED UPDATE FUNCTION WITH EMAIL AND SMS
+    window.updateRequestStatus = async function(requestId, newStatus, userName, userEmail, userPhone, itemCount) {
+      try {
+        const result = await Swal.fire({
+          title: 'Confirm Action',
+          html: `
+            <p>Are you sure you want to <strong>${newStatus}</strong> this request?</p>
+            <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>📧 Email to:</span>
+                <span><strong>${userEmail}</strong></span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>📱 SMS to:</span>
+                <span><strong>${userPhone}</strong></span>
+              </div>
+            </div>
+          `,
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: newStatus === 'approved' ? '#28a745' : newStatus === 'completed' ? '#17a2b8' : '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: `Yes, ${newStatus} & send notifications!`
+        });
+
+        if (result.isConfirmed) {
+          // Check notification preferences
+          const emailToggle = document.getElementById(`emailToggle_${requestId}`);
+          const smsToggle = document.getElementById(`smsToggle_${requestId}`);
+          
+          const sendEmail = emailToggle ? emailToggle.checked : true;
+          const sendSMS = smsToggle ? smsToggle.checked : true;
+
+          // Show loading
+          const loadingAlert = Swal.fire({
+            title: 'Processing...',
+            text: 'Updating request and sending notifications...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          // Update database
+          const requestRef = ref(db, `requests/${requestId}`);
+          await update(requestRef, { 
+            status: newStatus,
+            lastUpdated: Date.now()
+          });
+
+          // Send notifications
+          let emailSent = false;
+          let smsSent = false;
+
+          if (sendEmail) {
+            emailSent = await sendNotificationEmail(
+              newStatus, 
+              userEmail, 
+              userName, 
+              requestId, 
+              itemCount
+            );
+          }
+
+          if (sendSMS) {
+            smsSent = await sendSMSNotification(
+              newStatus, 
+              userPhone, 
+              userName, 
+              requestId, 
+              itemCount
+            );
+          }
+
+          // Close loading
+          Swal.close();
+
+          // Show success message
+          const notificationStatus = [];
+          if (sendEmail) notificationStatus.push(emailSent ? '✅ Email sent' : '❌ Email failed');
+          if (sendSMS) notificationStatus.push(smsSent ? '✅ SMS sent' : '❌ SMS failed');
+          
+          Swal.fire({
+            title: 'Success!',
+            html: `
+              <p>Request has been <strong>${newStatus}</strong> successfully.</p>
+              ${notificationStatus.length > 0 ? `<div style="margin-top: 10px; font-size: 0.9em;">${notificationStatus.join('<br>')}</div>` : ''}
+            `,
+            icon: 'success',
+            timer: 4000,
+            showConfirmButton: false
+          });
+
+          // Refresh the display
+          loadRequests();
+        }
+      } catch (error) {
+        console.error('Error updating request status:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to update request status. Please try again.',
+          icon: 'error'
+        });
+      }
+    };
+
+    // Global function to refresh data
+    window.loadRequests = loadRequests;
+
+    // Authentication check
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.warn('User not authenticated');
+      }
+    });
+
+  </script>
+</body>
+</html>

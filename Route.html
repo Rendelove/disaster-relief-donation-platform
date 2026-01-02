@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Get Directions to Our Center</title>
+  <link rel="icon" type="image/png" href="/assets/logo.svg">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+
+    #map {
+      height: 500px;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    input {
+      width: 300px;
+      padding: 10px;
+      margin-right: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Find Your Way to Our Center</h2>
+  <p>Enter your starting location to get directions to our center.</p>
+
+  <div>
+    <input type="text" id="start" placeholder="Enter your location" />
+    <button onclick="calculateRoute()">Get Directions</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    let map;
+    let directionsService;
+    let directionsRenderer;
+
+    // Set this to your actual food bank location
+    const foodBankLocation = { lat: 6.6687335, lng: -1.5769271 }; // Kumasi, Ghana
+
+    function initMap() {
+      console.log('initMap function called');
+      console.log('google object:', typeof google);
+      console.log('google.maps object:', typeof google.maps);
+      
+      try {
+        map = new google.maps.Map(document.getElementById("map"), {
+          zoom: 13,
+          center: foodBankLocation,
+        });
+        console.log('Map created successfully');
+
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+        
+        console.log('Directions service and renderer initialized');
+      } catch (error) {
+        console.error('Error in initMap:', error);
+      }
+    }
+
+    function calculateRoute() {
+      const start = document.getElementById("start").value;
+
+      if (!start) {
+        alert("Please enter a valid location.");
+        return;
+      }
+
+      const request = {
+        origin: start,
+        destination: foodBankLocation,
+        travelMode: 'DRIVING',
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(result);
+        } else {
+          alert("Could not calculate directions: " + status);
+        }
+      });
+    }
+
+    // Make initMap globally available
+    window.initMap = initMap;
+
+    // Function to load Google Maps API dynamically with secure API key
+    async function loadGoogleMaps() {
+      console.log('Starting to load Google Maps API...');
+      
+      try {
+        // Fetch the API key from your backend
+        console.log('Fetching API key from backend...');
+        const response = await fetch('/api/config/maps');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const config = await response.json();
+        console.log('API config received:', config);
+        
+        if (!config.apiKey) {
+          throw new Error('No API key received from backend');
+        }
+        
+        // Create script element for Google Maps API with places library
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${config.apiKey}&libraries=places&callback=initMap`;
+        script.async = true;
+        
+        console.log('Loading Google Maps script:', script.src);
+        
+        // Handle script load success
+        script.onload = function() {
+          console.log('Google Maps script loaded successfully');
+        };
+        
+        // Handle script load errors
+        script.onerror = function() {
+          console.error('Failed to load Google Maps API script');
+          console.error('Script src was:', script.src);
+        };
+        
+        // Add script to head
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Failed to load Google Maps API:', error);
+      }
+    }
+    
+    // Load the maps script when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM Content Loaded, starting Google Maps initialization...');
+      loadGoogleMaps();
+    });
+  </script>
+</body>
+</html>

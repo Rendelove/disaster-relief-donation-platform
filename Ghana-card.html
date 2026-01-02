@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghana ID Card & Face Verification</title>
+    <link rel="icon" type="image/png" href="/assets/logo.svg">
+    <link rel="stylesheet" type="text/css" href="/css/Ghana-card.css">
+</head>
+<body>
+    <h1>Ghana ID Card & Face Verification System</h1>
+    
+    <!-- Login Section -->
+    <div id="loginSection">
+        <h3>Login to Your Account</h3>
+        <div id="loginForm">
+            <input type="email" id="loginEmail" placeholder="Enter your email" style="width: 300px;">
+            <br><br>
+            <input type="password" id="loginPassword" placeholder="Enter your password" style="width: 300px;">
+            <br><br>
+            <button onclick="loginUser()" id="loginBtn">Login</button>
+            <button onclick="showRegisterForm()" class="secondary">Don't have an account? Register</button>
+        </div>
+        
+        <div id="registerForm" style="display: none;">
+            <h4>Create New Account</h4>
+            <input type="email" id="registerEmail" placeholder="Enter your email" style="width: 300px;">
+            <br><br>
+            <input type="password" id="registerPassword" placeholder="Choose a password" style="width: 300px;">
+            <br><br>
+            <button onclick="registerUser()" id="registerBtn">Register</button>
+            <button onclick="showLoginForm()" class="secondary">Already have an account? Login</button>
+        </div>
+    </div>
+    
+    <!-- User Dashboard -->
+    <div id="userDashboard" style="display: none;">
+        <div class="user-info">
+            <h3>Welcome, <span id="userEmail"></span>!</h3>
+            <p>Verification Status: <span id="verificationStatus" class="verification-status">Checking...</span></p>
+            <button onclick="logout()" class="secondary">Logout</button>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button onclick="initiateVerification()" id="verifyCardBtn" style="padding: 15px 30px; font-size: 16px;">
+                Verify Ghana ID Card
+            </button>
+            <button onclick="goToRequestPage()" id="requestBtn" style="padding: 15px 30px; font-size: 16px; margin-left: 10px;">
+                Make Request
+            </button>
+        </div>
+    </div>
+    
+    <!-- ID Verification Steps -->
+    <div id="step1" style="display: none;">
+        <h3>Step 1: Enter Your Personal ID Number</h3>
+        <input type="text" id="manualIdInput" placeholder="e.g. GHA-123456789-0" style="width: 300px; padding: 8px;">
+        <br><br>
+        <button onclick="proceedToStep2()">Continue to Upload Images</button>
+        <button onclick="cancelVerification()" class="secondary">Cancel</button>
+    </div>
+
+    <div id="step2" style="display: none;">
+        <h3>Step 2: Upload Your Selfie and Ghana ID Card</h3>
+        <p>Manually entered ID: <strong id="displayManualId"></strong></p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 20px 0;">
+            <div>
+                <h4>Upload Selfie Photo:</h4>
+                <input type="file" id="selfieInput" accept="image/*">
+                <div id="selfiePreview" style="display: none; margin-top: 10px;">
+                    <img id="selfieImg" alt="Selfie Preview" style="max-width: 250px; max-height: 250px; border: 2px solid #ccc;">
+                </div>
+            </div>
+            
+            <div>
+                <h4>Upload Ghana ID Card:</h4>
+                <input type="file" id="cardInput" accept="image/*">
+                <div id="cardPreview" style="display: none; margin-top: 10px;">
+                    <img id="cardImg" alt="Card Preview" style="max-width: 250px; max-height: 250px; border: 2px solid #ccc;">
+                </div>
+            </div>
+        </div>
+        
+        <button onclick="startVerification()" id="verifyBtn" style="padding: 15px 30px; font-size: 16px; background: #4CAF50; color: white; border: none; cursor: pointer;" disabled>
+            Start Verification
+        </button>
+        <button onclick="cancelVerification()" class="secondary">Cancel</button>
+        
+        <div id="loading" style="display: none; text-align: center; margin: 20px 0;">
+            <p>Performing verification...</p>
+            <div id="loadingSteps"></div>
+        </div>
+
+        <div id="resultSection" style="display: none; margin-top: 30px;">
+            <h3>Verification Results:</h3>
+            
+            <!-- ID Verification Result -->
+            <div id="idVerificationResult" style="border: 2px solid; padding: 15px; margin: 10px 0; font-weight: bold;">
+            </div>
+            
+            <!-- Face Verification Result -->
+            <div id="faceVerificationResult" style="border: 2px solid; padding: 15px; margin: 10px 0; font-weight: bold;">
+            </div>
+            
+            <!-- Overall Result -->
+            <div id="overallResult" style="border: 3px solid; padding: 20px; margin: 20px 0; font-weight: bold; font-size: 18px;">
+            </div>
+            
+            <div id="detailsSection" style="background: #f5f5f5; padding: 15px; margin: 15px 0;">
+                <h4>Verification Details:</h4>
+                <p><strong>Manually Entered ID:</strong> <span id="manualIdResult"></span></p>
+                <p><strong>ID from Card:</strong> <span id="cardIdResult"></span></p>
+                <p><strong>ID Match Status:</strong> <span id="idMatchStatus"></span></p>
+                <p><strong>Face Match Status:</strong> <span id="faceMatchStatus"></span></p>
+                <p><strong>Face Similarity Score:</strong> <span id="similarityScore"></span></p>
+                <p><strong>Verification Date:</strong> <span id="verificationDate"></span></p>
+            </div>
+            
+            <button onclick="returnToDashboard()">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <div id="messageArea"></div>
+
+    <!-- Firebase SDK -->
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.8/firebase-auth.js';
+    import { getDatabase, ref, set, get, child } from 'https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js';
+
+    // Fetch Firebase config from secure backend
+    let app, auth, database;
+    
+    async function initializeFirebase() {
+        try {
+            const response = await fetch('/api/config/firebase');
+            if (!response.ok) {
+                throw new Error('Failed to fetch Firebase config');
+            }
+            const firebaseConfig = await response.json();
+            
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            database = getDatabase(app);
+            
+            // Set up auth state observer after Firebase is initialized
+            setupAuthObserver();
+        } catch (error) {
+            console.error('Failed to initialize Firebase:', error);
+            showMessage('Failed to initialize application. Please refresh the page.', 'error');
+        }
+    }
+
+    let currentUser = null;
+    let userVerificationStatus = false;
+    let manualId = '';
+    let selfieFile = null;
+    let cardFile = null;
+    
+    const manualIdInput = document.getElementById('manualIdInput');
+    const selfieInput = document.getElementById('selfieInput');
+    const cardInput = document.getElementById('cardInput');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    // Make functions global
+    window.loginUser = loginUser;
+    window.registerUser = registerUser;
+    window.logout = logout;
+    window.showRegisterForm = showRegisterForm;
+    window.showLoginForm = showLoginForm;
+    window.initiateVerification = initiateVerification;
+    window.goToRequestPage = goToRequestPage;
+    window.proceedToStep2 = proceedToStep2;
+    window.cancelVerification = cancelVerification;
+    window.startVerification = startVerification;
+    window.returnToDashboard = returnToDashboard;
+
+    selfieInput.addEventListener('change', handleSelfieUpload);
+    cardInput.addEventListener('change', handleCardUpload);
+
+    // Initialize Firebase when page loads
+    initializeFirebase();
+
+    function setupAuthObserver() {
+        // Auth state observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userEmail').textContent = user.email;
+                checkUserVerificationStatus();
+                showDashboard();
+            } else {
+                currentUser = null;
+                showLogin();
+            }
+        });
+    }
+
+    function showMessage(message, type = 'info') {
+        const messageArea = document.getElementById('messageArea');
+        const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+        messageArea.innerHTML = `<div class="${className}">${message}</div>`;
+        setTimeout(() => {
+            messageArea.innerHTML = '';
+        }, 5000);
+    }
+
+    function showLogin() {
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('userDashboard').style.display = 'none';
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'none';
+    }
+
+    function showDashboard() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('userDashboard').style.display = 'block';
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'none';
+    }
+
+    function showLoginForm() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+    }
+
+    function showRegisterForm() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+    }
+
+    async function registerUser() {
+        if (!auth) {
+            showMessage('Application not ready. Please wait and try again.', 'error');
+            return;
+        }
+        
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        
+        if (!email || !password) {
+            showMessage('Please fill in all fields.', 'error');
+            return;
+        }
+
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            showMessage('Account created successfully!', 'success');
+        } catch (error) {
+            showMessage(`Registration failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function loginUser() {
+        if (!auth) {
+            showMessage('Application not ready. Please wait and try again.', 'error');
+            return;
+        }
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!email || !password) {
+            showMessage('Please fill in all fields.', 'error');
+            return;
+        }
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            showMessage('Login successful!', 'success');
+        } catch (error) {
+            showMessage(`Login failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function logout() {
+        if (!auth) return;
+        
+        try {
+            await signOut(auth);
+            showMessage('Logged out successfully!', 'success');
+        } catch (error) {
+            showMessage(`Logout failed: ${error.message}`, 'error');
+        }
+    }
+
+    async function checkUserVerificationStatus() {
+        if (!currentUser || !database) return;
+
+        try {
+            const dbRef = ref(database);
+            const snapshot = await get(child(dbRef, `users/${currentUser.uid}/verification`));
+            
+            if (snapshot.exists()) {
+                const verificationData = snapshot.val();
+                userVerificationStatus = verificationData.verified === true;
+            } else {
+                userVerificationStatus = false;
+            }
+
+            updateVerificationDisplay();
+        } catch (error) {
+            console.error('Error checking verification status:', error);
+            userVerificationStatus = false;
+            updateVerificationDisplay();
+        }
+    }
+
+    function updateVerificationDisplay() {
+        const statusElement = document.getElementById('verificationStatus');
+        const verifyBtn = document.getElementById('verifyCardBtn');
+        const requestBtn = document.getElementById('requestBtn');
+
+        if (userVerificationStatus) {
+            statusElement.textContent = 'Verified ✅';
+            statusElement.className = 'verification-status verified';
+            verifyBtn.textContent = 'Re-verify Ghana ID Card';
+            requestBtn.disabled = false;
+            requestBtn.style.backgroundColor = '#4CAF50';
+        } else {
+            statusElement.textContent = 'Not Verified ❌';
+            statusElement.className = 'verification-status not-verified';
+            verifyBtn.textContent = 'Verify Ghana ID Card';
+            requestBtn.disabled = true;
+            requestBtn.style.backgroundColor = '#ccc';
+        }
+    }
+
+    function initiateVerification() {
+        if (!currentUser) {
+            showMessage('Please log in first.', 'error');
+            return;
+        }
+        
+        document.getElementById('userDashboard').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+    }
+
+    function goToRequestPage() {
+        if (!currentUser) {
+            showMessage('Please log in first.', 'error');
+            return;
+        }
+
+        if (!userVerificationStatus) {
+            showMessage('Please verify your Ghana ID card first before making a request.', 'error');
+            return;
+        }
+
+        showMessage('Redirecting to request page...', 'success');
+        window.location.href = '/Questionnaire.html';
+    }
+
+    function cancelVerification() {
+        resetVerification();
+        showDashboard();
+    }
+
+    function returnToDashboard() {
+        resetVerification();
+        checkUserVerificationStatus();
+        showDashboard();
+    }
+
+    function proceedToStep2() {
+        const inputId = manualIdInput.value.trim();
+        
+        if (!inputId) {
+            showMessage('Please enter your Personal ID Number.', 'error');
+            return;
+        }
+        
+        if (!inputId.match(/^GHA-\d{9}-\d$/i)) {
+            showMessage('Please enter a valid Ghana ID format (e.g. GHA-123456789-0).', 'error');
+            return;
+        }
+        
+        manualId = inputId.toUpperCase();
+        document.getElementById('displayManualId').textContent = manualId;
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+    }
+
+    function handleSelfieUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (!file.type.startsWith('image/')) {
+            showMessage('Please select a valid image file for selfie.', 'error');
+            return;
+        }
+        
+        selfieFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('selfieImg').src = e.target.result;
+            document.getElementById('selfiePreview').style.display = 'block';
+            checkCanVerify();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleCardUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (!file.type.startsWith('image/')) {
+            showMessage('Please select a valid image file for ID card.', 'error');
+            return;
+        }
+        
+        cardFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('cardImg').src = e.target.result;
+            document.getElementById('cardPreview').style.display = 'block';
+            checkCanVerify();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function checkCanVerify() {
+        if (selfieFile && cardFile) {
+            verifyBtn.disabled = false;
+            verifyBtn.style.backgroundColor = '#4CAF50';
+        }
+    }
+
+    async function startVerification() {
+        if (!currentUser) {
+            showMessage('Please log in first.', 'error');
+            return;
+        }
+
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('resultSection').style.display = 'none';
+        
+        const loadingSteps = document.getElementById('loadingSteps');
+        
+        try {
+            // Step 1: Extract ID from card using secure backend
+            loadingSteps.innerHTML = '<p>📄 Extracting ID number from card...</p>';
+            const cardId = await extractIdFromCard(cardFile);
+            
+            // Step 2: Compare faces using secure backend
+            loadingSteps.innerHTML = '<p>📄 ✅ ID extracted</p><p>👤 Comparing faces...</p>';
+            const faceComparison = await compareFaces(selfieFile, cardFile);
+            
+            loadingSteps.innerHTML = '<p>📄 ✅ ID extracted</p><p>👤 ✅ Face comparison complete</p>';
+            
+            // Display results
+            await displayVerificationResults(manualId, cardId, faceComparison);
+            
+        } catch (error) {
+            console.error('Verification error:', error);
+            showMessage(`Verification failed: ${error.message}`, 'error');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    }
+
+    async function extractIdFromCard(file) {
+        const base64 = await fileToBase64(file);
+        const base64Content = base64.split(',')[1];
+
+        const response = await fetch('/api/vision/extract-text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Content })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.responses && data.responses[0] && data.responses[0].textAnnotations) {
+            const detectedText = data.responses[0].textAnnotations[0].description;
+            return extractPersonalIdNumber(detectedText);
+        }
+        
+        return null;
+    }
+
+    async function compareFaces(selfieFile, cardFile) {
+        const selfieBase64 = await fileToBase64(selfieFile);
+        const cardBase64 = await fileToBase64(cardFile);
+        
+        const selfieContent = selfieBase64.split(',')[1];
+        const cardContent = cardBase64.split(',')[1];
+
+        const response = await fetch('/api/vision/detect-faces', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                selfieImage: selfieContent,
+                cardImage: cardContent
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        const selfiFaces = data.responses[0].faceAnnotations || [];
+        const cardFaces = data.responses[1].faceAnnotations || [];
+        
+        if (selfiFaces.length === 0) {
+            throw new Error('No face detected in selfie image');
+        }
+        
+        if (cardFaces.length === 0) {
+            throw new Error('No face detected in ID card image');
+        }
+        
+        const selfieFace = selfiFaces[0];
+        const cardFace = cardFaces[0];
+        
+        const selfieConfidence = selfieFace.detectionConfidence || 0;
+        const cardConfidence = cardFace.detectionConfidence || 0;
+        
+        const baseSimilarity = Math.min(selfieConfidence, cardConfidence);
+        const similarityScore = Math.round(baseSimilarity * 100);
+        
+        const isMatch = similarityScore >= 70;
+        
+        return {
+            isMatch: isMatch,
+            similarityScore: similarityScore,
+            selfieFaceCount: selfiFaces.length,
+            cardFaceCount: cardFaces.length
+        };
+    }
+
+    function extractPersonalIdNumber(text) {
+        const patterns = [
+            /\b(GHA-\d{9}-\d)\b/i,
+            /Personal\s*ID\s*Number[\s\n]*([A-Z]{3}-\d{9}-\d)/i,
+            /\b([A-Z]{3}-\d{9}-\d)\b/,
+        ];
+        
+        for (const pattern of patterns) {
+            const match = text.match(pattern);
+            if (match) {
+                let idNumber = match[1] ? match[1].trim() : match[0].trim();
+                idNumber = idNumber.toUpperCase().replace(/\s+/g, '');
+                
+                if (idNumber.match(/^GHA-\d{9}-\d$/)) {
+                    return idNumber;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    async function displayVerificationResults(manualId, cardId, faceComparison) {
+        const resultSection = document.getElementById('resultSection');
+        
+        // ID Verification
+        const idVerificationResult = document.getElementById('idVerificationResult');
+        const idMatch = cardId && manualId === cardId;
+        
+        if (idMatch) {
+            idVerificationResult.style.borderColor = 'green';
+            idVerificationResult.style.backgroundColor = '#e8f5e8';
+            idVerificationResult.style.color = 'green';
+            idVerificationResult.innerHTML = '✅ ID VERIFICATION PASSED<br>Personal ID numbers match!';
+        } else {
+            idVerificationResult.style.borderColor = 'red';
+            idVerificationResult.style.backgroundColor = '#ffebee';
+            idVerificationResult.style.color = 'red';
+            idVerificationResult.innerHTML = '❌ ID VERIFICATION FAILED<br>Personal ID numbers do not match!';
+        }
+        
+        // Face Verification
+        const faceVerificationResult = document.getElementById('faceVerificationResult');
+        
+        if (faceComparison.isMatch) {
+            faceVerificationResult.style.borderColor = 'green';
+            faceVerificationResult.style.backgroundColor = '#e8f5e8';
+            faceVerificationResult.style.color = 'green';
+            faceVerificationResult.innerHTML = '✅ FACE VERIFICATION PASSED<br>Faces appear to match!';
+        } else {
+            faceVerificationResult.style.borderColor = 'red';
+            faceVerificationResult.style.backgroundColor = '#ffebee';
+            faceVerificationResult.style.color = 'red';
+            faceVerificationResult.innerHTML = '❌ FACE VERIFICATION FAILED<br>Faces do not appear to match!';
+        }
+        
+        // Overall Result
+        const overallResult = document.getElementById('overallResult');
+        const overallSuccess = idMatch && faceComparison.isMatch;
+        
+        if (overallSuccess) {
+            overallResult.style.borderColor = 'green';
+            overallResult.style.backgroundColor = '#e8f5e8';
+            overallResult.style.color = 'green';
+            overallResult.innerHTML = '🎉 IDENTITY VERIFICATION SUCCESSFUL<br>Both ID and face verification passed!';
+        } else {
+            overallResult.style.borderColor = 'red';
+            overallResult.style.backgroundColor = '#ffebee';
+            overallResult.style.color = 'red';
+            overallResult.innerHTML = '🚫 IDENTITY VERIFICATION FAILED<br>One or more verification steps failed!';
+        }
+        
+        // Save verification result to database
+        const verificationData = {
+            verified: overallSuccess,
+            idMatch: idMatch,
+            faceMatch: faceComparison.isMatch,
+            similarityScore: faceComparison.similarityScore,
+            timestamp: new Date().toISOString(),
+            date: new Date().toLocaleDateString()
+        };
+
+        try {
+            if (database && currentUser) {
+                await set(ref(database, `users/${currentUser.uid}/verification`), verificationData);
+                
+                if (overallSuccess) {
+                    showMessage('Verification successful! Your status has been updated.', 'success');
+                    userVerificationStatus = true;
+                } else {
+                    showMessage('Verification failed. Please try again with clearer images.', 'error');
+                    userVerificationStatus = false;
+                }
+            }
+        } catch (error) {
+            console.error('Error saving verification result:', error);
+            showMessage('Verification completed but failed to save to database.', 'error');
+        }
+        
+        // Fill details
+        document.getElementById('manualIdResult').textContent = manualId;
+        document.getElementById('cardIdResult').textContent = cardId || 'Not found';
+        document.getElementById('idMatchStatus').textContent = idMatch ? 'MATCH ✅' : 'NO MATCH ❌';
+        document.getElementById('idMatchStatus').style.color = idMatch ? 'green' : 'red';
+        document.getElementById('faceMatchStatus').textContent = faceComparison.isMatch ? 'MATCH ✅' : 'NO MATCH ❌';
+        document.getElementById('faceMatchStatus').style.color = faceComparison.isMatch ? 'green' : 'red';
+        document.getElementById('similarityScore').textContent = `${faceComparison.similarityScore}%`;
+        document.getElementById('verificationDate').textContent = new Date().toLocaleString();
+        
+        resultSection.style.display = 'block';
+    }
+
+    function resetVerification() {
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('selfiePreview').style.display = 'none';
+        document.getElementById('cardPreview').style.display = 'none';
+        
+        manualIdInput.value = '';
+        selfieInput.value = '';
+        cardInput.value = '';
+        manualId = '';
+        selfieFile = null;
+        cardFile = null;
+        verifyBtn.disabled = true;
+        verifyBtn.style.backgroundColor = '#ccc';
+        
+        document.getElementById('messageArea').innerHTML = '';
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> Location </title>
+        <link rel="icon" type="image/png" href="/assets/logo.svg">
+        <link rel="stylesheet" type="text/css" href="/css/Map.css"/>
+    </head>
+    <body>
+        <h2>To donate an Item please visit any of our centers</h2>
+        <p>For directions, please click<a href="Route.html">Route</a></p>
+        <div id="map"></div>
+        
+        <script>
+            // Define initMap function globally first with debugging
+            let map;
+
+            function initMap() {
+                console.log('initMap function called');
+                console.log('google object:', typeof google);
+                console.log('google.maps object:', typeof google.maps);
+                
+                try {
+                    map = new google.maps.Map(document.getElementById("map"),{
+                        center: {lat: 7.94, lng:1.02},
+                        zoom: 9
+                    });
+                    console.log('Map created successfully');
+
+                    const marker = new google.maps.Marker({
+                        position: {lat:6.6687335, lng:-1.5769271},
+                        map: map,
+                        label: "A",
+                        title: "AidBridge"
+                    });
+                    console.log('Marker 1 created');
+
+                    const marker1 = new google.maps.Marker({
+                        position: {lat:5.6182442, lng:-0.1271871},
+                        map: map,
+                        label: "A",
+                        title: "AidBridge"
+                    });
+                    console.log('Marker 2 created');
+
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: "<p>Brunei Branch</p>"
+                    });
+                    infoWindow.open(map, marker);
+
+                    const infoWindow1 = new google.maps.InfoWindow({
+                        content: "<p>Teshie Branch</p>"
+                    });
+                    infoWindow1.open(map, marker1);
+                    
+                    console.log('Map initialization completed successfully');
+                } catch (error) {
+                    console.error('Error in initMap:', error);
+                }
+            }
+
+            // Make initMap globally available
+            window.initMap = initMap;
+
+            // Function to load Google Maps API dynamically with secure API key
+            async function loadGoogleMaps() {
+                console.log('Starting to load Google Maps API...');
+                
+                try {
+                    // Fetch the API key from your backend
+                    console.log('Fetching API key from backend...');
+                    const response = await fetch('/api/config/maps');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const config = await response.json();
+                    console.log('API config received:', config);
+                    
+                    if (!config.apiKey) {
+                        throw new Error('No API key received from backend');
+                    }
+                    
+                    // Create script element for Google Maps API
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${config.apiKey}&callback=initMap&libraries=&v=weekly`;
+                    script.async = true;
+                    
+                    console.log('Loading Google Maps script:', script.src);
+                    
+                    // Handle script load success
+                    script.onload = function() {
+                        console.log('Google Maps script loaded successfully');
+                    };
+                    
+                    // Handle script load errors
+                    script.onerror = function() {
+                        console.error('Failed to load Google Maps API script');
+                        console.error('Script src was:', script.src);
+                    };
+                    
+                    // Add script to head
+                    document.head.appendChild(script);
+                } catch (error) {
+                    console.error('Failed to load Google Maps API:', error);
+                }
+            }
+            
+            // Load the maps script when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('DOM Content Loaded, starting Google Maps initialization...');
+                loadGoogleMaps();
+            });
+        </script>
+    </body>
+</html>

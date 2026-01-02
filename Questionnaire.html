@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Need & Disaster Impact Assessment</title>
+  <link rel="icon" type="image/png" href="/assets/logo.svg">
+  <link rel="stylesheet" href="/css/Questionnaire.css">
+</head>
+<body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <div class="header">
+    <h1>Need & Disaster Impact Assessment</h1>
+    <p>Answer honestly. False information may lead to suspension.</p>
+  </div>
+
+  <div class="container">
+    <!-- Assessment Form -->
+    <form id="assessmentForm">
+      <div class="card">
+        <h2>Identity</h2>
+        <div class="field">
+          <label>Age Range *</label>
+          <select name="ageRange" required>
+            <option value="">Select</option>
+            <option value="18-25">18 - 25</option>
+            <option value="26-30">26 - 30</option>
+            <option value="31-45">31 - 45</option>
+            <option value="46+">46 and above</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Household Size *</label>
+          <input type="number" name="householdSize" min="0" required>
+        </div>
+        <div class="field">
+          <label>Occupation *</label>
+          <select name="occupation" required>
+            <option value="">Select</option>
+            <option value="public">Public Sector Workers</option>
+            <option value="private">Private Sector Workers</option>
+            <option value="student">Student</option>
+            <option value="informal">Informal Sector Workers</option>
+            <option value="unskilled">Unskilled and Casual Workers</option>
+            <option value="skilled">Professional/Skilled Workers</option>
+            <option value="selfemployed">Self-Employed / Entrepreneurs</option>
+            <option value="unemployed">Unemployed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>GPS Address of Place of Work/School *</label>
+          <input type="text" name="workGpsAddress" required>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Disaster Impact</h2>
+        <div class="field">
+          <label>Disaster Type *</label>
+          <select name="disasterType" required>
+            <option value="">Select</option>
+            <option value="Flood">Flood</option>
+            <option value="Fire">Fire</option>
+            <option value="Drought">Drought</option>
+            <option value="Earthquake">Earthquake</option>
+            <option value="Epidemic">Epidemic</option>
+            <option value="Storm / Wind">Storm / Wind</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Date of Disaster *</label>
+          <input type="date" name="disasterDate" required>
+        </div>
+        <div class="field">
+          <label>Were you displaced?</label>
+          <select name="displacement">
+            <option value="">Select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Do you currently have safe shelter? *</label>
+          <select name="hasSafeShelter" required>
+            <option value="">Select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        
+        <!-- NEW IMAGE UPLOAD SECTION -->
+        <div class="field">
+          <label>Photos of Affected Home *</label>
+          <p class="field-description">Please upload photos showing the damage to your home. You can upload up to 3 images (max 2MB each).</p>
+          <div class="image-upload-container">
+            <input 
+              type="file" 
+              id="homeImages" 
+              name="homeImages" 
+              accept="image/*" 
+              multiple 
+              required
+              style="display: none;"
+            >
+            <div class="upload-area" id="uploadArea">
+              <div class="upload-icon">📷</div>
+              <p>Click to upload or drag and drop photos here</p>
+              <small>PNG, JPG, JPEG up to 2MB each (max 3 photos)</small>
+            </div>
+            <div class="image-preview-container" id="imagePreviewContainer"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Financial Need</h2>
+        <div class="field">
+          <label>Monthly Household Income *</label>
+          <select name="incomeRange" required>
+            <option value="">Select</option>
+            <option value="<500">Below GHS 500</option>
+            <option value="500-1000">GHS 500 – 1,000</option>
+            <option value="1001-2000">GHS 1,001 – 2,000</option>
+            <option value=">2000">Above GHS 2,000</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Meals per day last month *</label>
+          <select name="mealFrequency" required>
+            <option value="">Select</option>
+            <option value="always">Always (3x)</option>
+            <option value="sometimes">Sometimes (1–2x)</option>
+            <option value="rarely">Rarely (≤1x)</option>
+            <option value="never">Never</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Do you have debts/loans due to the disaster?</label>
+          <select name="hasLoans">
+            <option value="">Select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Loan Amount (GHS)</label>
+          <input type="number" name="loanAmount" min="0" max="100000">
+        </div>
+        <div class="field">
+          <label>Have you stopped school, medical care, or other essentials?</label>
+          <select name="essentialStopped">
+            <option value="">Select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>If yes, explain</label>
+          <input type="text" name="essentialExplain">
+        </div>
+        <div class="checkbox-field">
+          <input type="checkbox" name="contactConsent" required id="consent">
+          <label for="consent">I consent to be contacted and verified</label>
+        </div>
+        <button type="submit">Submit Application</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHqlTMSxyGZlZ96HczhiSCiXx4zdPX_do",
+      authDomain: "aidbridge-d2d6f.firebaseapp.com",
+      projectId: "aidbridge-d2d6f",
+      storageBucket: "aidbridge-d2d6f.firebasestorage.app",
+      messagingSenderId: "713082002976",
+      appId: "1:713082002976:web:0334f8454e398e5e86a645"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Global variables
+    let currentUser = null;
+    let selectedImages = []; // Store base64 images
+    const form = document.getElementById('assessmentForm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const fileInput = document.getElementById('homeImages');
+    const uploadArea = document.getElementById('uploadArea');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+
+    // Income range mapping for calculations
+    const incomeRangeMapping = {
+      "<500": 400,
+      "500-1000": 750,
+      "1001-2000": 1500,
+      ">2000": 3000
+    };
+
+    // Image upload functionality
+    function initializeImageUpload() {
+      // Click to upload
+      uploadArea.addEventListener('click', () => {
+        fileInput.click();
+      });
+
+      // Drag and drop functionality
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#007bff';
+        uploadArea.style.backgroundColor = '#f8f9fa';
+      });
+
+      uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#ddd';
+        uploadArea.style.backgroundColor = '#fff';
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = '#ddd';
+        uploadArea.style.backgroundColor = '#fff';
+        
+        const files = Array.from(e.dataTransfer.files);
+        handleFileSelection(files);
+      });
+
+      // File input change
+      fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        handleFileSelection(files);
+      });
+    }
+
+    function handleFileSelection(files) {
+      // Validate file types and sizes
+      const validFiles = [];
+      const maxSize = 2 * 1024 * 1024; // 2MB (reduced for base64 storage)
+      const maxFiles = 3;
+
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) {
+          showNotification(`${file.name} is not a valid image file.`, 'error');
+          continue;
+        }
+
+        if (file.size > maxSize) {
+          showNotification(`${file.name} is too large. Maximum size is 2MB.`, 'error');
+          continue;
+        }
+
+        validFiles.push(file);
+      }
+
+      // Limit to max files
+      if (selectedImages.length + validFiles.length > maxFiles) {
+        const remaining = maxFiles - selectedImages.length;
+        validFiles.splice(remaining);
+        showNotification(`Maximum ${maxFiles} images allowed. Only first ${remaining} images were added.`, 'error');
+      }
+
+      // Convert files to base64 and add to selectedImages
+      validFiles.forEach(file => {
+        convertToBase64(file);
+      });
+    }
+
+    function convertToBase64(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageData = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          base64: e.target.result,
+          uploadDate: new Date().toISOString()
+        };
+        
+        selectedImages.push(imageData);
+        updateImagePreviews();
+      };
+      
+      reader.onerror = function() {
+        showNotification(`Error reading ${file.name}`, 'error');
+      };
+      
+      reader.readAsDataURL(file);
+    }
+
+    function updateImagePreviews() {
+      previewContainer.innerHTML = '';
+      
+      selectedImages.forEach((imageData, index) => {
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'image-preview';
+        
+        const img = document.createElement('img');
+        img.src = imageData.base64;
+        img.alt = `Home damage photo ${index + 1}`;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'remove-image-btn';
+        removeBtn.innerHTML = '×';
+        removeBtn.onclick = () => removeImage(index);
+        
+        const fileName = document.createElement('p');
+        fileName.textContent = imageData.name;
+        fileName.className = 'image-filename';
+        
+        const fileSize = document.createElement('small');
+        fileSize.textContent = `${(imageData.size / 1024).toFixed(1)} KB`;
+        fileSize.className = 'image-filesize';
+        
+        previewDiv.appendChild(img);
+        previewDiv.appendChild(removeBtn);
+        previewDiv.appendChild(fileName);
+        previewDiv.appendChild(fileSize);
+        previewContainer.appendChild(previewDiv);
+      });
+
+      // Update form validation
+      const isValid = selectedImages.length > 0;
+      fileInput.setCustomValidity(isValid ? '' : 'Please upload at least one photo of your affected home.');
+    }
+
+    function removeImage(index) {
+      selectedImages.splice(index, 1);
+      updateImagePreviews();
+    }
+
+    // Check authentication state
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        console.log('User authenticated:', user.uid);
+        
+        // Initialize image upload functionality
+        initializeImageUpload();
+        
+        // Check if user has already completed the questionnaire
+        await checkIfAlreadyCompleted();
+      } else {
+        console.log('User not authenticated, redirecting to login');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Check if user has already completed questionnaire
+    async function checkIfAlreadyCompleted() {
+      try {
+        showLoading(true);
+        const userDoc = await getDoc(doc(db, 'assessments', currentUser.uid));
+        
+        if (userDoc.exists()) {
+          console.log('User has already completed questionnaire, redirecting to request page');
+          window.location.href = 'Request-Page.html';
+        } else {
+          console.log('First time user, showing questionnaire');
+          showLoading(false);
+        }
+      } catch (error) {
+        console.error('Error checking completion status:', error);
+        showNotification('Error checking your status. Please refresh the page.', 'error');
+        showLoading(false);
+      }
+    }
+
+    // Scoring algorithm - CORRECTED
+    function computeScore(data) {
+      let score = 0;
+      const reasons = [];
+      const flags = [];
+
+      // Age priority
+      if (data.ageRange === "18-25") { 
+        score += 15; 
+        reasons.push("Young (18-25) priority"); 
+      }
+      else if (data.ageRange === "46+") { 
+        score += 15; 
+        reasons.push("Senior (46+) priority"); 
+      }
+      else if (data.ageRange === "26-30") { 
+        score += 8; 
+        reasons.push("Medium priority age (26-30)"); 
+      }
+      else if (data.ageRange === "31-45") { 
+        score += 5; 
+        reasons.push("Lower priority age (31-45)"); 
+      }
+
+      // Income
+      const incomeWeights = {"<500":25,"500-1000":18,"1001-2000":8,">2000":0};
+      score += incomeWeights[data.incomeRange] || 0;
+      if (incomeWeights[data.incomeRange]) reasons.push("Low income: " + data.incomeRange);
+
+      // Meals
+      const mealWeights = {never:25, rarely:18, sometimes:10, always:0};
+      score += mealWeights[data.mealFrequency] || 0;
+      if (mealWeights[data.mealFrequency] && data.mealFrequency !== 'always') {
+        reasons.push("Food insecurity: " + data.mealFrequency);
+      }
+
+      // Shelter
+      if (data.hasSafeShelter === "no") { 
+        score += 18; 
+        reasons.push("No safe shelter"); 
+      }
+
+      // Loans
+      if (data.hasLoans === "yes") {
+        const loan = Number(data.loanAmount) || 0;
+        if (loan > 100000) {
+          flags.push("Loan amount exceeds limit (100000)");
+        } else {
+          if (loan >= 5000) { 
+            score += 12; 
+            reasons.push("High debt"); 
+          }
+          else if (loan >= 2000) { 
+            score += 8; 
+            reasons.push("Medium debt"); 
+          }
+          else if (loan > 0) { 
+            score += 4; 
+            reasons.push("Some debt"); 
+          }
+
+          const incomeVal = incomeRangeMapping[data.incomeRange];
+          if (incomeVal && loan > incomeVal * 5) {
+            flags.push("Income ("+incomeVal+") too low for claimed loan (>"+(incomeVal*5)+")");
+          }
+        }
+      }
+
+      // Essential services
+      if (data.essentialStopped === "yes") { 
+        score += 10; 
+        reasons.push("Stopped essentials"); 
+      }
+
+      // Inconsistencies
+      if (data.incomeRange === ">2000" && (data.mealFrequency==="rarely" || data.mealFrequency==="never")) {
+        flags.push("High income but food insecure");
+      }
+
+      // Household size flag
+      if (data.householdSize && Number(data.householdSize) > 10) {
+        flags.push("Unusually large household size (>10)");
+      }
+
+      // Occupation vs Income consistency check
+      const occupationIncomeRanges = {
+        public: [418, 33855],
+        private: [2500, 5000],
+        informal: [1200, 2200],
+        selfemployed: [1200, 7000],
+        unskilled: [500, 1690],
+        skilled: [2000, 10000],
+        student: [0, 1000],
+        unemployed: [0, 500]
+      };
+
+      const occ = data.occupation;
+      const incomeVal = incomeRangeMapping[data.incomeRange];
+      if (occ && incomeVal && occupationIncomeRanges[occ]) {
+        const [min, max] = occupationIncomeRanges[occ];
+        if (incomeVal < min*0.8 || incomeVal > max*1.2) {
+          flags.push("Income inconsistent with occupation: " + occ + " at GHS " + incomeVal);
+        }
+      }
+
+      // Cap score to 100
+      if (score > 100) score = 100;
+
+      // Status
+      let status = "Manual Review";
+      if (score >= 70 && flags.length === 0) status = "Approve";
+      else if (score < 35) status = "Reject";
+
+      return {score, reasons, flags, status};
+    }
+
+    // Show loading overlay
+    function showLoading(show) {
+      loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
+
+    // Show notification
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 4px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        ${type === 'success' ? 'background-color: #10b981;' : 
+          type === 'info' ? 'background-color: #3b82f6;' : 'background-color: #ef4444;'}
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // Save assessment data to Firebase
+    async function saveAssessmentData(formData, scoreData, imageData) {
+      try {
+        const assessmentData = {
+          // Personal Information
+          userId: currentUser.uid,
+          email: currentUser.email,
+          ageRange: formData.ageRange,
+          householdSize: parseInt(formData.householdSize),
+          occupation: formData.occupation,
+          workGpsAddress: formData.workGpsAddress,
+          
+          // Disaster Information
+          disasterType: formData.disasterType,
+          disasterDate: formData.disasterDate,
+          displacement: formData.displacement,
+          hasSafeShelter: formData.hasSafeShelter,
+          
+          // Financial Information
+          incomeRange: formData.incomeRange,
+          mealFrequency: formData.mealFrequency,
+          hasLoans: formData.hasLoans,
+          loanAmount: formData.loanAmount ? parseInt(formData.loanAmount) : 0,
+          essentialStopped: formData.essentialStopped,
+          essentialExplain: formData.essentialExplain || '',
+          
+          // Image Data - stored as base64 strings
+          homeImages: imageData,
+          
+          // Assessment Results
+          score: scoreData.score,
+          status: scoreData.status,
+          reasons: scoreData.reasons,
+          flags: scoreData.flags,
+          
+          // Metadata
+          contactConsent: formData.contactConsent === 'on',
+          submissionDate: new Date().toISOString(),
+          lastUpdated: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, 'assessments', currentUser.uid), assessmentData);
+        console.log('Assessment data saved successfully');
+        return true;
+      } catch (error) {
+        console.error('Error saving assessment data:', error);
+        throw error;
+      }
+    }
+
+    // Form submission handler - ENHANCED WITH BASE64 IMAGE HANDLING
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Better error handling for authentication
+      if (!currentUser) {
+        showNotification('Please log in to submit your assessment.', 'error');
+        console.log('No user authenticated - skipping for testing');
+        return;
+      }
+
+      // Validate images
+      if (selectedImages.length === 0) {
+        showNotification('Please upload at least one photo of your affected home.', 'error');
+        return;
+      }
+
+      const button = e.target.querySelector('button[type="submit"]');
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.style.transform = 'scale(0.95)';
+      button.textContent = 'Submitting...';
+      
+      showLoading(true);
+
+      try {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        // Debug: Log the form data
+        console.log('Form data:', data);
+        console.log('Selected images:', selectedImages.length);
+        
+        const scoreData = computeScore(data);
+        
+        // Debug: Log the score data
+        console.log('Score data:', scoreData);
+        
+        // Save to Firebase with base64 images
+        await saveAssessmentData(data, scoreData, selectedImages);
+        
+        showNotification('Assessment submitted successfully!', 'success');
+        
+        // Wait a moment then redirect to request page
+        setTimeout(() => {
+          window.location.href = 'Request-Page.html';
+          console.log('Would redirect to Request-Page.html');
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Submission error:', error);
+        showNotification('Error submitting assessment: ' + error.message, 'error');
+        
+        // Reset button
+        button.disabled = false;
+        button.style.transform = 'scale(1)';
+        button.textContent = originalText;
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    // Initialize image upload when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeImageUpload();
+    });
+
+    // Add smooth focus transitions
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('focus', (e) => {
+        e.target.style.transform = 'translateY(-1px)';
+      });
+      
+      input.addEventListener('blur', (e) => {
+        e.target.style.transform = 'translateY(0)';
+      });
+    });
+
+    // Add logout functionality
+    window.logout = async function() {
+      try {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        showNotification('Error signing out', 'error');
+      }
+    };
+
+    // Enhanced CSS for image upload and loading
+    const style = document.createElement('style');
+    style.textContent = `
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .field-description {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 10px;
+      }
+      
+      .image-upload-container {
+        margin-top: 8px;
+      }
+      
+      .upload-area {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fff;
+      }
+      
+      .upload-area:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+      }
+      
+      .upload-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+      }
+      
+      .image-preview-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+      
+      .image-preview {
+        position: relative;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f9f9f9;
+      }
+      
+      .image-preview img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        display: block;
+      }
+      
+      .remove-image-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s;
+      }
+      
+      .remove-image-btn:hover {
+        background: rgba(255, 0, 0, 1);
+      }
+      
+      .image-filename {
+        padding: 8px 8px 4px 8px;
+        font-size: 0.8em;
+        color: #666;
+        margin: 0;
+        word-break: break-word;
+      }
+      
+      .image-filesize {
+        padding: 0 8px 8px 8px;
+        color: #999;
+        display: block;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
